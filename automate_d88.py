@@ -50,6 +50,7 @@ if not PASSWORD:
 # =========================================================
 
 def main():
+    
 
     with sync_playwright() as p:
 
@@ -124,40 +125,41 @@ def main():
             PASSWORD
         )
 
-        # =====================================================
-        # CAPTCHA
-        # =====================================================
+          # -----------------------------------------------------
+# CAPTCHA
+# -----------------------------------------------------
+
+        print("Reading CAPTCHA...")
+
+        captcha = page.locator("#captcha-text").inner_text().strip()
+
+        print(f"CAPTCHA detected: {captcha}")
+
+        page.locator("#varification-code").fill(captcha)
+
+        print("CAPTCHA filled.")
+
+        # -----------------------------------------------------
+        # LOGIN
+        # -----------------------------------------------------
+
+        print("Clicking Login...")
+
+        page.locator("#loginBtnId").click()
+
+        print("Login button clicked.")
+        
+        print(
+            "=============================================="
+        )
+
+        # -----------------------------------------------------
+        # WAIT FOR LOGIN
+        # -----------------------------------------------------
 
         print()
         print(
-            "=============================================="
-        )
-        print(
-            "CAPTCHA REQUIRED"
-        )
-        print(
-            "=============================================="
-        )
-        print(
-            "Username and password have been filled."
-        )
-        print(
-            "Solve the CAPTCHA manually."
-        )
-        print(
-            "Then click Login."
-        )
-        print(
-            "=============================================="
-        )
-        print()
-
-        # =====================================================
-        # WAIT FOR LOGIN TO COMPLETE
-        # =====================================================
-
-        print(
-            "Waiting for successful login..."
+            "Waiting for login..."
         )
 
         try:

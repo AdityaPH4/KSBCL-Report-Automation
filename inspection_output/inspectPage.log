@@ -1,0 +1,246 @@
+======================================================================
+KSBCL LOGIN PAGE INSPECTION
+======================================================================
+Starting Chrome using SeleniumBase...
+Opening KSBCL...
+URL: https://ksbclonline.karnataka.gov.in/KSBCL/
+TITLE: KSBCL | Login
+
+======================================================================
+INPUT ELEMENTS
+======================================================================
+Found 11 input(s)
+
+INPUT #0
+  type: radio
+  id: inlineRadio1
+  name: inlineRadioOptions
+  placeholder: None
+  class: form-check-input
+  value: option1
+  disabled: False
+  visible: False
+
+INPUT #1
+  type: radio
+  id: inlineRadio2
+  name: inlineRadioOptions
+  placeholder: None
+  class: form-check-input
+  value: option2
+  disabled: False
+  visible: False
+
+INPUT #2
+  type: hidden
+  id: text_type
+  name: text_type
+  placeholder: None
+  class: None
+  value: None
+  disabled: False
+  visible: False
+
+INPUT #3
+  type: hidden
+  id: attemptCount
+  name: attemptCount
+  placeholder: None
+  class: None
+  value: 3
+  disabled: False
+  visible: False
+
+INPUT #4
+  type: text
+  id: login_name
+  name: login_name
+  placeholder: None
+  class: input ValidateInput email mt-2  list-group-item border border-1 bg-hero-overlay-dark providing-item border-orange w-100 mb-3 list-group-item-action d-flex align-items-center justify-content-between rounded-2 
+  value: None
+  disabled: False
+  visible: True
+
+INPUT #5
+  type: password
+  id: password
+  name: Password
+  placeholder: None
+  class: input  ValidateInput list-group-item mt-2 border border-1 bg-hero-overlay-dark providing-item border-orange w-100 mb-3 list-group-item-action d-flex align-items-center rounded-2  
+  value: None
+  disabled: False
+  visible: True
+
+INPUT #6
+  type: hidden
+  id: main-captcha
+  name: None
+  placeholder: None
+  class: None
+  value: 3PTFI
+  disabled: False
+  visible: False
+
+INPUT #7
+  type: text
+  id: varification-code
+  name: user_captcha
+  placeholder: Captcha
+  class: ValidateInput captchaClass form-control  mt-2 border border-1  border-orange w-100 mb-3 py-3  
+  value: None
+  disabled: False
+  visible: True
+
+INPUT #8
+  type: hidden
+  id: documentFolderNameId
+  name: documentFolderName
+  placeholder: None
+  class: None
+  value: None
+  disabled: False
+  visible: False
+
+INPUT #9
+  type: hidden
+  id: documentNameId
+  name: documentName
+  placeholder: None
+  class: None
+  value: None
+  disabled: False
+  visible: False
+
+INPUT #10
+  type: hidden
+  id: downloadName
+  name: downloadName
+  placeholder: None
+  class: None
+  value: None
+  disabled: False
+  visible: False
+
+======================================================================
+BUTTON ELEMENTS
+======================================================================
+Found 1 button(s)
+
+BUTTON #0
+  text: Login
+  id: loginBtnId
+  name: None
+  type: button
+  class: btn-get-started animate__animated animate__fadeInUp m-0 rounded-2 mt-4 ms-3 shadow 
+  disabled: False
+  visible: True
+  HTML: <button type="button" class="btn-get-started animate__animated animate__fadeInUp m-0 rounded-2 mt-4 ms-3 shadow " tabindex="4" id="loginBtnId">Login  <i class="fas fa-paper-plane ml-2" aria-hidden="true"></i>
+								</button>
+
+======================================================================
+SUBMIT / BUTTON INPUTS
+======================================================================
+Found 0
+
+======================================================================
+LABELS
+======================================================================
+LABEL #0: text='English', for=inlineRadio1, id=None, class=form-check-label red
+LABEL #1: text='?????', for=inlineRadio2, id=None, class=form-check-label green
+LABEL #2: text='3PTFI', for=None, id=captcha-text, class=addStrike captcha-text font-weight-bold h4 text-dark mr-2 captchaClass
+
+======================================================================
+POSSIBLE CAPTCHA ELEMENTS
+======================================================================
+
+MATCH: [id*="captcha" i]
+  visible: False
+  HTML: <input type="hidden" id="main-captcha" value="3PTFI">
+
+MATCH: [id*="captcha" i]
+  visible: True
+  HTML: <label contenteditable="false" class="addStrike captcha-text font-weight-bold h4 text-dark mr-2 captchaClass" id="captcha-text" onmousedown="return false" ondrag="return false" ondrop="return false" style="letter-spacing: 0px;padding-top: 5px;">3PTFI</label>
+
+MATCH: [name*="captcha" i]
+  visible: True
+  HTML: <input type="text" name="user_captcha" tabindex="3" autocomplete="off" id="varification-code" oninput="javascript: if (this.value.length &gt; 5) this.value = this.value.slice(0, 5);" class="ValidateInput captchaClass form-control  mt-2 border border-1  border-orange w-100 mb-3 py-3  " placeholder="Captcha">
+
+MATCH: [class*="captcha" i]
+  visible: True
+  HTML: <div class="captcha_div mt-2" style="margin-left: auto;">
+										<label contenteditable="false" class="addStrike captcha-text font-weight-bold h4 text-dark mr-2 captchaClass" id="captcha-text" onmousedown="return false" ondrag="return false" ondrop="return false" style="letter-spacing: 0px;padding-top: 5px;">3PTFI</label>						
+										<i class="fas fa-refresh m-0 mb-3 text-muted" onclick="generateCaptcha()"></i>
+									</div>
+
+======================================================================
+FORMS
+======================================================================
+Found 3 form(s)
+
+FORM #0
+  id: loginFormID
+  name: loginForm
+  action: /KSBCL/;jsessionid=D88E7FD1FC15F730DDE993C777BC3503.server3
+  method: POST
+  class: needs-validation
+
+FORM #1
+  id: menuFormId
+  name: menuForm
+  action: /KSBCL/;jsessionid=D88E7FD1FC15F730DDE993C777BC3503.server3
+  method: post
+  class: None
+
+FORM #2
+  id: documentFormId
+  name: documentForm
+  action: /KSBCL/;jsessionid=D88E7FD1FC15F730DDE993C777BC3503.server3
+  method: post
+  class: None
+
+======================================================================
+LOGIN / CAPTCHA RELATED LINKS
+======================================================================
+
+LINK #5
+  text: Login
+  id: None
+  class: None
+  href: gallery.html
+
+======================================================================
+VISIBLE PAGE TEXT
+======================================================================
+Official Web Portal of Karnataka State Beverages Corporation Limited
+
+A-
+A
+A+
+Karnataka State Beverages Corporation Limited
+
+Public Sector Undertaking Under Finance Dept GOK
+
+Home
+Welcome to KSBCL
+
+Login in your account
+
+Username
+
+Password
+
+3PTFI 
+Login 
+Forgot Password?
+
+
+New Licensee Registration
+
+======================================================================
+INSPECTION COMPLETE
+======================================================================
+Log: inspection_output/inspectPage.log
+HTML: inspection_output/page.html
+Screenshot: inspection_output/login_page.png
+
+Browser remains open. Press ENTER to close.
