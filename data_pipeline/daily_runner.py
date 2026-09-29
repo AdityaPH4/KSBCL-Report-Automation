@@ -4,20 +4,17 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from data_pipeline.importer import import_report
-
+from .importer import import_report
 
 INDIA = ZoneInfo("Asia/Kolkata")
 
 
-def main():
+def run(spec):
 
-    print(
-        "Running crawler (automate_bottles_d88.py)...\n"
-    )
+    print(f"Running crawler ({spec.crawler_script})...\n")
 
     result = subprocess.run(
-        [sys.executable, "automate_bottles_d88.py"]
+        [sys.executable, spec.crawler_script]
     )
 
     # ---------------------------------------------------------
@@ -48,7 +45,7 @@ def main():
     )
 
     file_path = Path(
-        f"D88_Report_{report_date.isoformat()}.xlsx"
+        f"{spec.filename_prefix}_{report_date.isoformat()}.xlsx"
     )
 
     # ---------------------------------------------------------
@@ -70,7 +67,7 @@ def main():
         )
 
         print(
-            "0 rows added to D88_Bottles_Master.xlsx."
+            f"0 rows added to robinhood.{spec.table_name}."
         )
 
         return
@@ -84,14 +81,11 @@ def main():
     )
 
     print(
-        "Appending data to D88_Bottles_Master.xlsx...\n"
+        f"Appending data to robinhood.{spec.table_name}...\n"
     )
 
     import_report(
         file_path=str(file_path),
-        report_date=report_date.isoformat()
+        report_date=report_date.isoformat(),
+        spec=spec,
     )
-
-
-if __name__ == "__main__":
-    main()

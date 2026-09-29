@@ -2,99 +2,6 @@ import re
 import pandas as pd
 
 
-# Our internal, stable column names
-COLUMN_ALIASES = {
-    "sr_no": [
-        "sr no",
-        "serial no",
-        "serial number",
-        "sr number",
-    ],
-    "depo_name": [
-        "depo name",
-        "depot name",
-    ],
-    "supplier_name": [
-        "supplier",
-        "supplier name",
-    ],
-    "retailer_name": [
-        "retailer",
-        "retailer name",
-    ],
-    "sales_invoice_no": [
-        "sales invoice",
-        "sales invoice no",
-        "sales invoice number",
-        "invoice no",
-        "invoice number",
-    ],
-    "vehicle_no": [
-        "vehicle no",
-        "vehicle number",
-        "vehicle",
-    ],
-    "sales_invoice_date": [
-        "sales invoice date",
-        "invoice date",
-    ],
-    "item_name": [
-        "item name",
-        "item",
-    ],
-    "slab": [
-        "slab",
-    ],
-    "rangename": [
-        "rangename",
-        "range name",
-    ],
-    "supplier_type_name": [
-        "supplier type",
-        "supplier type name",
-    ],
-    "brand_name": [
-        "brand",
-        "brand name",
-    ],
-    "category_name": [
-        "category",
-        "category name",
-    ],
-    "item_qty": [
-        "item qty",
-        "item quantity",
-        "quantity",
-        "qty",
-    ],
-    "sales_cbs": [
-        "sales cbs",
-        "sales cb",
-    ],
-    "sales_btls": [
-        "sales btls",
-        "sales bottles",
-        "bottles",
-    ],
-    "invoice_amount": [
-        "invoice amount",
-        "amount",
-    ],
-}
-
-
-# Columns that must exist for the report to be considered valid
-REQUIRED_COLUMNS = [
-    "depo_name",
-    "supplier_name",
-    "retailer_name",
-    "sales_invoice_no",
-    "item_name",
-    "item_qty",
-    "invoice_amount",
-]
-
-
 def normalize_column_name(name):
     """
     Normalize a column name for reliable matching.
@@ -148,9 +55,9 @@ def normalize_column_name(name):
     return name
 
 
-def find_header_row(raw_df):
+def find_header_row(raw_df, column_aliases):
     """
-    Searches every row until it finds the actual D88 header.
+    Searches every row until it finds the actual report header.
     Does NOT assume the header is on a fixed row.
     """
 
@@ -159,7 +66,7 @@ def find_header_row(raw_df):
             normalize_column_name(alias)
             for alias in aliases
         }
-        for canonical, aliases in COLUMN_ALIASES.items()
+        for canonical, aliases in column_aliases.items()
     }
 
     for row_index in range(len(raw_df)):
@@ -180,17 +87,17 @@ def find_header_row(raw_df):
                     matched_columns += 1
                     break
 
-        # A real D88 header should contain several known columns
+        # A real header row should contain several known columns
         if matched_columns >= 5:
             return row_index
 
     raise ValueError(
-        "Could not find the D88 header row. "
+        "Could not find the report header row. "
         "The Excel format may have changed."
     )
 
 
-def map_columns(columns):
+def map_columns(columns, column_aliases):
     """
     Maps whatever column names KSBCL gives us
     to our stable internal column names.
@@ -201,7 +108,7 @@ def map_columns(columns):
             normalize_column_name(alias)
             for alias in aliases
         }
-        for canonical, aliases in COLUMN_ALIASES.items()
+        for canonical, aliases in column_aliases.items()
     }
 
     column_mapping = {}
@@ -223,7 +130,7 @@ def map_columns(columns):
     return column_mapping
 
 
-def parse_d88(file_path):
+def parse_report(file_path, spec):
 
     print(f"Reading report: {file_path}")
 
@@ -236,9 +143,9 @@ def parse_d88(file_path):
     print(f"Loaded {len(raw_df)} rows")
 
     # Find the real header dynamically
-    header_row = find_header_row(raw_df)
+    header_row = find_header_row(raw_df, spec.column_aliases)
 
-    print(f"Found D88 header at Excel row {header_row + 1}")
+    print(f"Found report header at Excel row {header_row + 1}")
 
     # Everything below the header is data
     headers = raw_df.iloc[header_row].tolist()
@@ -254,7 +161,7 @@ def parse_d88(file_path):
     ).reset_index(drop=True)
 
     # Map KSBCL's column names to ours
-    column_mapping = map_columns(data.columns)
+    column_mapping = map_columns(data.columns, spec.column_aliases)
 
     print("\nDetected columns:")
 
@@ -269,14 +176,14 @@ def parse_d88(file_path):
     # Check required columns
     missing_columns = [
         column
-        for column in REQUIRED_COLUMNS
+        for column in spec.required_columns
         if column not in data.columns
     ]
 
     if missing_columns:
 
         raise ValueError(
-            "\nD88 report is missing required columns:\n"
+            f"\n{spec.key} report is missing required columns:\n"
             + "\n".join(
                 f"  - {column}"
                 for column in missing_columns
@@ -287,7 +194,7 @@ def parse_d88(file_path):
     # Keep only columns we understand
     recognized_columns = [
         column
-        for column in COLUMN_ALIASES
+        for column in spec.column_aliases
         if column in data.columns
     ]
 
