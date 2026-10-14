@@ -1,0 +1,10 @@
+.env
+.venv/
+playwright/.auth/
+__pycache__/
+*.pyc
+*.xlsx
+.git/
+downloaded_files/
+inspection_output/
+data/

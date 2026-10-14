@@ -1,11 +1,11 @@
 import os
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 import json
 
 import pandas as pd
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
+
+from data_pipeline.report_date import resolve_report_date
 
 
 # =========================================================
@@ -18,6 +18,10 @@ KSBCL_URL = "https://ksbclonline.karnataka.gov.in/KSBCL/"
 
 USERNAME = os.getenv("KSBCL_CIDER_USERNAME")
 PASSWORD = os.getenv("KSBCL_CIDER_PASSWORD")
+
+# Defaults to headless (required in any environment with no display,
+# e.g. a container). Set HEADLESS=false locally to watch the browser.
+HEADLESS = os.getenv("HEADLESS", "true").lower() != "false"
 
 DATE_INPUT = "#dateInpId"
 FROM_DATE_INPUT = "#fromdateInpId"
@@ -54,7 +58,7 @@ def main():
     with sync_playwright() as p:
 
         browser = p.chromium.launch(
-            headless=False
+            headless=HEADLESS
         )
 
         context = browser.new_context()
@@ -74,6 +78,8 @@ def main():
             wait_until="domcontentloaded"
         )
 
+        page.wait_for_timeout(2000)
+
         # =====================================================
         # AUTOMATIC LOGIN
         # =====================================================
@@ -87,6 +93,8 @@ def main():
             USERNAME
         )
 
+        page.wait_for_timeout(2000)
+
         print(
             "Filling password..."
         )
@@ -95,6 +103,8 @@ def main():
             "#password",
             PASSWORD
         )
+
+        page.wait_for_timeout(2000)
 
         # -----------------------------------------------------
         # CAPTCHA
@@ -122,6 +132,8 @@ def main():
             captcha
         )
 
+        page.wait_for_timeout(2000)
+
         print(
             "CAPTCHA filled."
         )
@@ -137,6 +149,8 @@ def main():
         page.locator(
             "#loginBtnId"
         ).click()
+
+        page.wait_for_timeout(2000)
 
         print(
             "Login button clicked."
@@ -214,6 +228,8 @@ def main():
                     wait_until="domcontentloaded"
                 )
 
+                page.wait_for_timeout(2000)
+
             except Exception as e:
 
                 print(
@@ -260,6 +276,8 @@ def main():
 
                 d88.first.click()
 
+                page.wait_for_timeout(2000)
+
             except Exception as e:
 
                 print(
@@ -302,6 +320,8 @@ def main():
                     if d88_result.count() > 0:
 
                         d88_result.first.click()
+
+                        page.wait_for_timeout(2000)
 
                     else:
 
@@ -377,6 +397,8 @@ def main():
                 if d88_result.count() > 0:
 
                     d88_result.first.click()
+
+                    page.wait_for_timeout(2000)
 
                 else:
 
@@ -459,17 +481,14 @@ def main():
         )
 
         # =====================================================
-        # CALCULATE YESTERDAY
+        # REPORT DATE
         # =====================================================
 
-        india = ZoneInfo(
-            "Asia/Kolkata"
-        )
+        # Resolved from --date / REPORT_DATE / yesterday — see
+        # data_pipeline/report_date.py, the single source of truth
+        # shared with daily_runner.py so the two never disagree.
 
-        report_date = (
-            datetime.now(india).date()
-            - timedelta(days=1)
-        )
+        report_date = resolve_report_date()
 
         report_date_str = report_date.strftime(
             "%d/%m/%Y"
@@ -495,6 +514,8 @@ def main():
             date_range
         )
 
+        page.wait_for_timeout(2000)
+
         page.locator(
             FROM_DATE_INPUT
         ).evaluate(
@@ -502,12 +523,16 @@ def main():
             report_date_str
         )
 
+        page.wait_for_timeout(2000)
+
         page.locator(
             TO_DATE_INPUT
         ).evaluate(
             "(el, value) => el.value = value",
             report_date_str
         )
+
+        page.wait_for_timeout(2000)
 
         print(
             "Date configured:",
@@ -584,6 +609,8 @@ def main():
             ) as response_info:
 
                 visible_search.click()
+
+                page.wait_for_timeout(2000)
 
             report_response = response_info.value
 

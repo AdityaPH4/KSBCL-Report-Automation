@@ -1,11 +1,13 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
 
 import pandas as pd
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
+
+from data_pipeline.report_date import resolve_report_date
 
 
 # =========================================================
@@ -18,6 +20,10 @@ KSBCL_URL = "https://ksbclonline.karnataka.gov.in/KSBCL/"
 
 USERNAME = os.getenv("KSBCL_USERNAME")
 PASSWORD = os.getenv("KSBCL_PASSWORD")
+
+# Defaults to headless (required in any environment with no display,
+# e.g. a container). Set HEADLESS=false locally to watch the browser.
+HEADLESS = os.getenv("HEADLESS", "true").lower() != "false"
 
 # D94 uses ONE date field: "As On Date"
 DATE_INPUT = 'input[placeholder="As On Date"]'
@@ -53,7 +59,7 @@ def main():
     with sync_playwright() as p:
 
         browser = p.chromium.launch(
-            headless=False
+            headless=HEADLESS
         )
 
         context = browser.new_context()
@@ -73,6 +79,8 @@ def main():
             wait_until="domcontentloaded"
         )
 
+        page.wait_for_timeout(2000)
+
         # =====================================================
         # AUTOMATIC LOGIN
         # =====================================================
@@ -86,6 +94,8 @@ def main():
             USERNAME
         )
 
+        page.wait_for_timeout(2000)
+
         print(
             "Filling password..."
         )
@@ -94,6 +104,8 @@ def main():
             "#password",
             PASSWORD
         )
+
+        page.wait_for_timeout(2000)
 
         # -----------------------------------------------------
         # CAPTCHA
@@ -121,6 +133,8 @@ def main():
             captcha
         )
 
+        page.wait_for_timeout(2000)
+
         print(
             "CAPTCHA filled."
         )
@@ -136,6 +150,8 @@ def main():
         page.locator(
             "#loginBtnId"
         ).click()
+
+        page.wait_for_timeout(2000)
 
         print(
             "Login button clicked."
@@ -216,6 +232,8 @@ def main():
                     wait_until="domcontentloaded"
                 )
 
+                page.wait_for_timeout(2000)
+
             except Exception as e:
 
                 print(
@@ -262,6 +280,8 @@ def main():
 
                 d94.first.click()
 
+                page.wait_for_timeout(2000)
+
             except Exception as e:
 
                 print(
@@ -305,6 +325,8 @@ def main():
                     if d94_result.count() > 0:
 
                         d94_result.first.click()
+
+                        page.wait_for_timeout(2000)
 
                     else:
 
@@ -381,6 +403,8 @@ def main():
                 if d94_result.count() > 0:
 
                     d94_result.first.click()
+
+                    page.wait_for_timeout(2000)
 
                 else:
 
@@ -463,17 +487,14 @@ def main():
         )
 
         # =====================================================
-        # CALCULATE YESTERDAY
+        # REPORT DATE
         # =====================================================
 
-        india = ZoneInfo(
-            "Asia/Kolkata"
-        )
+        # Resolved from --date / REPORT_DATE / yesterday — see
+        # data_pipeline/report_date.py, the single source of truth
+        # shared with daily_runner.py so the two never disagree.
 
-        report_date = (
-            datetime.now(india).date()
-            - timedelta(days=1)
-        )
+        report_date = resolve_report_date()
 
         report_date_str = report_date.strftime(
             "%d/%m/%Y"
@@ -496,13 +517,9 @@ def main():
             DATE_INPUT
         )
 
-        # Click the date field to open the datepicker
         date_input.click()
 
         page.wait_for_timeout(500)
-
-        # Calculate yesterday
-        report_date_str = report_date.strftime("%d/%m/%Y")
 
         print(
             "Selecting date:",
@@ -510,37 +527,40 @@ def main():
         )
 
         # -----------------------------------------------------
-        # Select the day from the visible datepicker
+        # Select the day by its exact data-date cell.
+        #
+        # The bootstrap-datepicker widget stamps every day cell
+        # with data-date = UTC midnight of that day, in epoch
+        # milliseconds. Matching on this exact value (instead of
+        # the visible day *number*) avoids a real bug: the
+        # calendar opens on the CURRENT real month by default, and
+        # a leading/trailing day from an adjacent month can share
+        # the same day number (e.g. "30" appears both as a grayed
+        # leading day for the previous month AND as a real day in
+        # the current month) causing the wrong month's day to get
+        # clicked with no error.
         # -----------------------------------------------------
 
-        day_number = str(report_date.day)
-
-        # Find the visible datepicker
-        datepicker = page.locator(
-            ".datepicker:visible"
+        target_ms = int(
+            datetime(
+                report_date.year,
+                report_date.month,
+                report_date.day,
+                tzinfo=ZoneInfo("UTC")
+            ).timestamp()
+            * 1000
         )
 
-        if datepicker.count() == 0:
-
-            # Fallback: search visible calendar containers
-            datepicker = page.locator(
-                "div:visible"
-            ).filter(
-                has_text="September 2026"
-            )
-
-        # Click the exact day
-        day_button = datepicker.get_by_text(
-            day_number,
-            exact=True
+        day_cell = page.locator(
+            f'td[data-date="{target_ms}"]:visible'
         )
 
         print(
-            "Matching day buttons:",
-            day_button.count()
+            "Matching day cells:",
+            day_cell.count()
         )
 
-        if day_button.count() == 0:
+        if day_cell.count() == 0:
 
             print(
                 "\nERROR: Could not find the required date in the datepicker."
@@ -554,24 +574,7 @@ def main():
 
             raise SystemExit(1)
 
-        # Click the last matching visible day.
-        # This avoids accidentally selecting a duplicate
-        # day from another calendar element.
-        for i in range(day_button.count() - 1, -1, -1):
-
-            candidate = day_button.nth(i)
-
-            try:
-
-                if candidate.is_visible():
-
-                    candidate.click()
-
-                    break
-
-            except Exception:
-
-                pass
+        day_cell.first.click()
 
         page.wait_for_timeout(500)
 
@@ -667,6 +670,8 @@ def main():
             ) as response_info:
 
                 visible_search.click()
+
+                page.wait_for_timeout(2000)
 
             report_response = response_info.value
 

@@ -15,6 +15,7 @@ DF_COLUMN_MAP = {
     "Serial No.": "serial_no",
     "Date of Extraction": "date_of_extraction",
     "Import ID": "import_id",
+    "Month": "month",
 }
 
 
@@ -42,7 +43,7 @@ class Table:
         self.report_columns = list(spec.column_aliases.keys())
         self.column_types = spec.column_types
         self.columns = (
-            ["serial_no", "date_of_extraction", "import_id"] + self.report_columns
+            ["serial_no", "date_of_extraction", "import_id", "month"] + self.report_columns
         )
 
     def _ddl(self):
@@ -58,9 +59,13 @@ CREATE TABLE IF NOT EXISTS {SCHEMA}.{self.name} (
     serial_no           BIGINT PRIMARY KEY,
     date_of_extraction  DATE NOT NULL,
     import_id           TEXT NOT NULL,
+    month               TEXT NOT NULL,
     {column_defs},
     inserted_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS {self.name}_month_idx
+    ON {SCHEMA}.{self.name} (month);
 
 CREATE INDEX IF NOT EXISTS {self.name}_import_id_idx
     ON {SCHEMA}.{self.name} (import_id);

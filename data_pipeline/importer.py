@@ -31,7 +31,7 @@ def import_report(file_path, report_date, spec):
         # 5. Don't import same report twice
         if table.already_imported(conn, import_id):
             print(f"{import_id} already imported.")
-            return
+            return None
 
         # 6. Get next serial
         next_serial = table.get_next_serial(conn)
@@ -43,6 +43,10 @@ def import_report(file_path, report_date, spec):
         extraction_date = datetime.now(ZoneInfo("Asia/Kolkata")).date()
         df.insert(1, "Date of Extraction", extraction_date.isoformat())
         df.insert(2, "Import ID", import_id)
+        # Month the DATA is about (report_date), not when it was crawled —
+        # these differ during a backfill, e.g. crawling Sept 30 data on
+        # Oct 6 must still tag it "2026-09", not "2026-10".
+        df.insert(3, "Month", report_date.strftime("%Y-%m"))
 
         # 9. Append to robinhood.<table> (Postgres, AWS)
         inserted = table.append_dataframe(conn, df)
@@ -53,3 +57,5 @@ def import_report(file_path, report_date, spec):
         f"Imported {inserted} rows "
         f"starting from {next_serial}"
     )
+
+    return inserted
